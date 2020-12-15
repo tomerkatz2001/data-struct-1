@@ -35,11 +35,7 @@ class AvlTree
 
     }
     AvlTree():info(nullptr),left_tree(nullptr),right_tree(nullptr),father(nullptr){}
-    //AvlTree(const X& key ,const Y& data):info(nullptr),left_tree(nullptr),right_tree(nullptr)
-    //{
-      //  Info<X,Y>* info_ptr= new Info<X,Y>(key,data);
-        //info=info_ptr;
-   // }
+   
     void print(int sapce)const; 
     void insert(X key,Y data);
     int getHeight() const ;
