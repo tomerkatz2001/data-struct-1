@@ -35,9 +35,9 @@ class AvlTree
 
     }
     AvlTree():info(nullptr),left_tree(nullptr),right_tree(nullptr),father(nullptr){}
-   
+
     void print(int sapce)const; 
-    void insert(X key,Y data);
+    void insert(const X& key,const Y& data);
     int getHeight() const ;
     void updateHeight();
     int getBF()const;
@@ -49,16 +49,31 @@ class AvlTree
     void rrRoll();
     void rlRoll();
     const Info<X,Y>* find(const X& key) const;
-    AvlTree<X,Y>* findV(X key);
+    AvlTree<X,Y>* findV(const X& key);
     void remove(AvlTree<X,Y>* tree_to_remove);
+    void Delete(const X& key);
     //AvlTree<X,Y>* getFatherOf(const X& key);
     
 };
-
+/*
+give this function a key and it will take it out of the tree without hurting the order of the avltree
+time complaxity: log(n) whan n is the amount of items in the tree
+if key not found in the tree nothing will happen
+*/
 template <class X, class Y>
-AvlTree<X,Y>* AvlTree<X,Y>::findV(X key)
+void AvlTree<X,Y>::Delete(const X& key)
 {
-    if(this==nullptr||info==nullptr)
+    this->remove(this->findV(key));
+}
+
+/*
+find the vertex with the same key that was given and return its address
+if not fount in the tree returns nullptr
+*/
+template <class X, class Y>
+AvlTree<X,Y>* AvlTree<X,Y>::findV(const X& key)
+{
+    if(this==nullptr||this->info==nullptr)
     {
         return nullptr;
     }
@@ -79,8 +94,7 @@ AvlTree<X,Y>* AvlTree<X,Y>::findV(X key)
             {
                 return this->right_tree->findV(key);
             }
-            
-            
+                
         }
         else
         {
@@ -97,84 +111,160 @@ AvlTree<X,Y>* AvlTree<X,Y>::findV(X key)
     }   
 }
 
-// template<class X,class Y>
-// AvlTree<X,Y>* AvlTree<X,Y>::getFatherOf(const X& key)
-// {
-//     assert(this->find(key)!=nullptr);
-//     if(this->info->getKey()=key)
-//     {
-//         return nullptr; // no father to this
-//     }
-
-//     return (this->find(key))->farher;
-
-// }
-
+/*
+remove the given vertex that was given without hurting his sons
+if given nullptr to remove it won't do anything
+*/
 template<class X,class Y>
 void AvlTree<X,Y>::remove(AvlTree<X,Y>* remove_ptr)
 {
     
-    if(remove_ptr=nullptr)//it is not in the tree
+    if(remove_ptr==nullptr)//it is not in the tree
     {
         return;
     }
     if(remove_ptr->left_tree==nullptr&&remove_ptr->right_tree==nullptr)//leaf
     {
-        AvlTree<X,Y>* father=remove_ptr->father;
-        if(father->left_tree=remove_ptr)
+        if(remove_ptr->father==nullptr)//there is only one 
         {
-            father->left_tree=nullptr;
-        }
-        if(father->right_tree=remove_ptr)
-        {
-            father->right_tree=nullptr;
-        }
-        delete remove_ptr;
-        while (father!=nullptr)
-        {   
-            father.checkAndFIX();
-            father=father->father;
-        }   
-    }
-    if(remove_ptr->right_tree==nullptr&&remove_ptr->left_tree!=nullptr)//no leaf with only left tree
-    {   
-        if(remove_ptr->father==nullptr)//the info of the tree with only one kid
-        {
-            Info<X,Y>* temp= remove_ptr->left_tree->info;
-            remove_ptr->left_tree->info=nullptr;
-            
             delete remove_ptr->info;
-            remove_ptr->info=temp;
-            
-            remove_ptr->right_tree=remove_ptr->left_tree->right_tree;
-            remove_ptr->left_tree->right_tree=nullptr;
-
-            AvlTree<X,Y>* temp_tree =remove_ptr->left_tree->left_tree;
-            remove_ptr->left_tree->left_tree=nullptr;
-
-            delete remove_ptr->left_tree;
-
-            remove_ptr->left_tree=temp_tree;
+            remove_ptr->info=nullptr;
         }
         else
         {
             AvlTree<X,Y>* father=remove_ptr->father;
-            if(father->left_tree=remove_ptr)
+            if(father->left_tree==remove_ptr)
             {
-                father->left_tree=remove_ptr->left_tree;
-                remove_ptr->left_tree=nullptr;
+                father->left_tree=nullptr;
             }
-            if(father->right_tree=remove_ptr)
+            if(father->right_tree==remove_ptr)
             {
-                father->right_tree=remove_ptr->left_tree;
-                remove_ptr->left_tree=nullptr;
+                father->right_tree=nullptr;
             }
+            father->updateHeight();
             delete remove_ptr;
+            while (father!=nullptr)
+            {   
+                father->checkAndFix();
+                father=father->father;
+            }   
+        }
+    }
+    else if(remove_ptr->right_tree==nullptr&&remove_ptr->left_tree!=nullptr)//no leaf with only left tree
+    {   
+        if(remove_ptr->father==nullptr)//the root of the tree with only one kid
+        {
+            delete remove_ptr->info;
+            remove_ptr->info =remove_ptr->left_tree->info;
+            remove_ptr->left_tree->info=nullptr;
+            AvlTree<X,Y>* temp_left=remove_ptr->left_tree->left_tree;
+            AvlTree<X,Y>* temp_right=remove_ptr->left_tree->right_tree;
+            remove_ptr->left_tree->left_tree=nullptr;
+            remove_ptr->left_tree->right_tree=nullptr;
+            delete remove_ptr->left_tree;
+            remove_ptr->left_tree=temp_left;
+            if(temp_left!=nullptr)
+            {
+                temp_left->father=remove_ptr;
+            }
+            remove_ptr->right_tree=temp_right;
+            if(temp_right!=nullptr)
+            {
+                temp_right->father=remove_ptr;
+            }
+            
             
         }
-        
+        else//not the root, has a father
+        {
+            AvlTree<X,Y>* father=remove_ptr->father;
+            if(father->left_tree==remove_ptr)
+            {
+                father->left_tree=remove_ptr->left_tree;
+                
+            }
+            if(father->right_tree==remove_ptr)
+            {
+                father->right_tree=remove_ptr->left_tree;
+               
+            }
+            if(remove_ptr->left_tree!=nullptr)
+            {
+                remove_ptr->left_tree->father=remove_ptr->father;
+            }
+            remove_ptr->left_tree=nullptr;
+            delete remove_ptr;
+            while(father!=nullptr)
+            {
+                father->updateHeight();
+                father->checkAndFix();
+                father=father->father;
+            }
+        }
 
     }
+    else if(remove_ptr->right_tree!=nullptr&&remove_ptr->left_tree==nullptr)//no leaf with only right tree
+    {
+        if(remove_ptr->father==nullptr)//this is the root of the tree, no father
+        {
+            delete remove_ptr->info;
+            remove_ptr->info=remove_ptr->right_tree->info;
+            remove_ptr->right_tree->info=nullptr;
+            AvlTree<X,Y>* temp_left=remove_ptr->right_tree->left_tree;
+            AvlTree<X,Y>* temp_right=remove_ptr->right_tree->right_tree;
+            remove_ptr->right_tree->left_tree=nullptr;
+            remove_ptr->right_tree->right_tree=nullptr;
+            delete remove_ptr->right_tree;
+            remove_ptr->left_tree=temp_left;
+            if(temp_left!=nullptr)
+            {
+                temp_left->father=remove_ptr;
+            }
+            remove_ptr->right_tree=temp_right;
+            
+            if(temp_right!=nullptr)
+            {
+                temp_right->father=remove_ptr;
+            }
+        }
+        else//not the root, has a father
+        {
+             AvlTree<X,Y>* father=remove_ptr->father;
+            if(remove_ptr->father->left_tree==remove_ptr)
+            {
+                remove_ptr->father->left_tree=remove_ptr->right_tree;
+            }
+            if(remove_ptr->father->right_tree==remove_ptr)
+            {
+                remove_ptr->father->right_tree=remove_ptr->right_tree;
+            }
+            if(remove_ptr->right_tree!=nullptr)
+            {
+                remove_ptr->right_tree->father=remove_ptr->father;
+            }
+            remove_ptr->right_tree=nullptr;
+            delete remove_ptr;
+            while(father!=nullptr)
+            {
+                father->updateHeight();
+                father->checkAndFix();
+                father=father->father;
+            }
+        }
+    }
+    else if(remove_ptr->right_tree!=nullptr&&remove_ptr->right_tree!=nullptr)
+    {
+        AvlTree<X,Y>* next =remove_ptr->right_tree;
+        while(next->left_tree!=nullptr)
+        {
+            next=next->left_tree;
+        }
+        Info<X,Y>* temp_info=remove_ptr->info;
+        remove_ptr->info=next->info;
+        next->info=temp_info;
+        this->remove(next);
+    }
+    
 }
 template<class X,class Y>
 const Info<X,Y>* AvlTree<X,Y>::find(const X& key) const
@@ -394,22 +484,26 @@ void AvlTree<X,Y>::print(int space) const{
         {
             std::cout<<" ";
         }
+        if(this->info!=nullptr)
         std::cout<<this->info->getData()<<std::endl;
         this->left_tree->print(space+3);
-
 
     }
 
 }
 
+/*
+this function gets a key and data to add THEM into the tree.
+if the key is already in the tree this will replace it with the new data by removing the old one and inserting the new one
+*/
 template<class X,class Y>
-void AvlTree<X,Y>::insert(X key,Y data)
+void AvlTree<X,Y>::insert(const X& key,const Y& data)
 {
-    if(this->find(key)!=nullptr)
+    if(this->findV(key)!=nullptr)
     {
         if(this->info!=nullptr)
         {
-           // assert(0);
+            this->Delete(key);
         }
     }
     
