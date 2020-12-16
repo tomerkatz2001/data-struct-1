@@ -1,4 +1,3 @@
-
 #ifndef TREE_H
 #define TREE_h
 #include "info.h"
@@ -38,6 +37,12 @@ class AvlTree
 
     void print(int sapce)const; 
     void insert(const X& key,const Y& data);
+    void Delete(const X& key);
+    bool exist(const X& key)const;
+    Y get(const X& key)const;
+
+
+
     int getHeight() const ;
     void updateHeight();
     int getBF()const;
@@ -51,10 +56,33 @@ class AvlTree
     const Info<X,Y>* find(const X& key) const;
     AvlTree<X,Y>* findV(const X& key);
     void remove(AvlTree<X,Y>* tree_to_remove);
-    void Delete(const X& key);
-    //AvlTree<X,Y>* getFatherOf(const X& key);
+    
+    
     
 };
+/*
+this function will tell you if the given key is alraedy in the tree
+time compax :log(n)
+*/
+template <class X, class Y>
+bool AvlTree<X,Y>::exist(const X& key)const
+{
+    return this->find(key)==nullptr?false:true;
+}
+
+/*
+this function will give the data of the given key
+BE CAREFUL don't give it a key which not in the tree
+time complax:log(n)
+*/
+template <class X,class Y>
+Y AvlTree<X,Y>::get(const X& key)const
+{
+    assert(this->exist(key));
+    return this->find(key)->getData();
+}
+
+
 /*
 give this function a key and it will take it out of the tree without hurting the order of the avltree
 time complaxity: log(n) whan n is the amount of items in the tree
