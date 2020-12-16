@@ -62,4 +62,6 @@ void Info<T,Z>::changeKey(const T new_key)
 {
     this->key=new_key;
 }
+
+
 #endif
