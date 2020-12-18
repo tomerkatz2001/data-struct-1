@@ -2,6 +2,7 @@
 #define TREE_h
 #include "info.h"
 
+
 static int max(const int& a,const  int& b)
 {
     if(a>b)
@@ -13,7 +14,6 @@ static int max(const int& a,const  int& b)
     
 }
 
-
 template<class X,class Y>
 class AvlTree
 {
@@ -22,9 +22,11 @@ class AvlTree
     AvlTree<X,Y>* left_tree;
     AvlTree<X,Y>* right_tree;
     AvlTree<X,Y>* father;
+    AvlTree<X,Y>* biggest;
     public:
     ~AvlTree()
     {
+        biggest=nullptr;
         delete info;
         info=nullptr;
         delete left_tree;
@@ -33,16 +35,18 @@ class AvlTree
         right_tree=nullptr;
 
     }
-    AvlTree():info(nullptr),left_tree(nullptr),right_tree(nullptr),father(nullptr){}
+    AvlTree():info(nullptr),left_tree(nullptr),right_tree(nullptr),father(nullptr),biggest(this){}
 
     void print(int sapce)const; 
     void insert(const X& key,const Y& data);
     void Delete(const X& key);
     bool exist(const X& key)const;
     Y get(const X& key)const;
+    void get(Y* arr,int n)const;
+    AvlTree<X,Y>* getBiggest()const;
 
 
-
+    void insert_help(const X& key,const Y& data);
     int getHeight() const ;
     void updateHeight();
     int getBF()const;
@@ -56,13 +60,15 @@ class AvlTree
     const Info<X,Y>* find(const X& key) const;
     AvlTree<X,Y>* findV(const X& key);
     void remove(AvlTree<X,Y>* tree_to_remove);
+    void get_help(Y* arr,int n,const AvlTree<X,Y>* biggest)const;
+    int inorder(const AvlTree<X,Y>*tree,Y* arr, int n,int how_much)const;
     
     
     
 };
 /*
 this function will tell you if the given key is alraedy in the tree
-time compax :log(n)
+time compax :log(N)
 */
 template <class X, class Y>
 bool AvlTree<X,Y>::exist(const X& key)const
@@ -73,7 +79,7 @@ bool AvlTree<X,Y>::exist(const X& key)const
 /*
 this function will give the data of the given key
 BE CAREFUL don't give it a key which not in the tree
-time complax:log(n)
+time complax:log(N)
 */
 template <class X,class Y>
 Y AvlTree<X,Y>::get(const X& key)const
@@ -85,15 +91,178 @@ Y AvlTree<X,Y>::get(const X& key)const
 
 /*
 give this function a key and it will take it out of the tree without hurting the order of the avltree
-time complaxity: log(n) whan n is the amount of items in the tree
+time complaxity: log(N) whan n is the amount of items in the tree
 if key not found in the tree nothing will happen
 */
 template <class X, class Y>
 void AvlTree<X,Y>::Delete(const X& key)
 {
+  
     this->remove(this->findV(key));
+    AvlTree<X,Y>* scan=this;
+    while(scan->right_tree!=nullptr)
+    {
+        scan=scan->right_tree;
+    }
+    this->biggest=scan;
 }
 
+/*this function will do an inorder tour in the tree, from the big to the small, and put the data in the given array
+give this function how many vertex you want to get
+time complax: o(n+log(N)) when n is the givven n and N is size of the tree
+but if you givr this function the biggedt leaf not log(N) is needed
+it return the amount of item it got from the tree (it could be at max n)*/
+template <class X, class Y>
+int AvlTree<X,Y>::inorder(const AvlTree<X,Y>*tree, Y* arr, int n,int how_much)const
+{ 
+    if(how_much>=n||tree==nullptr)
+    {
+        return how_much;
+    }
+    how_much=this->right_tree->inorder(tree->right_tree,arr,n,how_much);
+    if(how_much<n)
+    {
+        arr[how_much]=(tree->info->getData());
+        how_much++;
+    
+        how_much=(this-> left_tree->inorder(tree->left_tree,arr,n,how_much));
+    }
+    return how_much;   
+   
+}
+
+template <class X, class Y>
+void AvlTree<X,Y>::get_help(Y* arr,int n,const AvlTree<X,Y>* biggest)const
+{
+    int inserted=0;
+    inserted=this->inorder(biggest,arr,n,0);//
+    n=n-inserted;
+    const AvlTree<X,Y>* temp_tree=biggest;
+    while(n>0)
+    {
+        int x=0;
+        if(temp_tree->father==nullptr)
+        {
+           throw std::exception();
+            break;
+        }
+        temp_tree=temp_tree->father;
+        arr[inserted]=temp_tree->info->getData();
+        inserted++;
+        n--;
+        x=temp_tree->inorder(temp_tree->left_tree,(arr+inserted),n,0);
+        inserted=inserted+x;
+        n=n-x;
+    }
+        
+}
+
+/*
+this function will give you the n biggest element in the tree by order in the arr you give it (a[0]-the biggest)
+give it an arr with enough space and if asked more then what were in the tree thrw exception
+ */
+template <class X, class Y>
+void AvlTree<X,Y>::get(Y* arr,int n)const
+{
+    get_help(arr,n,(this->biggest));
+}
+
+
+
+/*
+this function gets a key and data to add THEM into the tree.
+if the key is already in the tree this will replace it with the new data by removing the old one and inserting the new one
+time comlex:log(N)
+*/
+template<class X,class Y>
+void AvlTree<X,Y>::insert(const X& key,const Y& data)
+{
+    this->insert_help(key,data);
+    AvlTree<X,Y>* scan=this;
+    while(scan->right_tree!=nullptr)
+    {
+        scan=scan->right_tree;
+    }
+    this->biggest=scan;
+}
+
+template<class X,class Y>
+void AvlTree<X,Y>::insert_help(const X& key,const Y& data)
+{
+    if(this->findV(key)!=nullptr)
+    {
+        if(this->info!=nullptr)
+        {
+            this->Delete(key);
+        }
+    }
+    
+    if(this->info==nullptr)//empty tree
+    {
+       Info<X,Y>* new_info_ptr= new Info<X,Y>;
+       new_info_ptr->changeData(data);
+       new_info_ptr->changeKey(key);
+        this->info=new_info_ptr;
+        this->biggest=this;
+        return;
+    }
+    else//added to tree
+    {
+    
+    if(key<=info->getKey())//need to go left
+    {
+        if(this->left_tree==nullptr)//there is no left tree
+        {
+            
+            AvlTree<X,Y>* new_tree_ptr =new AvlTree<X,Y>;
+            new_tree_ptr->info=new Info<X,Y>;
+            new_tree_ptr->info->changeData(data);
+            new_tree_ptr->info->changeKey(key);
+            new_tree_ptr->father=this;
+            this->left_tree=new_tree_ptr;
+        }
+        else
+        {
+            
+            this->left_tree->insert(key,data);
+        } 
+    }
+    else//need to be put in the right side
+    {
+        if(this->right_tree==nullptr)//ther is no right tree
+        {
+            
+            AvlTree<X,Y>* new_tree_ptr =new AvlTree<X,Y>;
+            new_tree_ptr->info= new Info<X,Y>;
+            new_tree_ptr->info->changeData(data);
+            new_tree_ptr->info->changeKey(key);
+            new_tree_ptr->father=this;
+            this->right_tree=new_tree_ptr;
+        }
+        else
+        {
+            
+            this->right_tree->insert(key,data);
+        }
+        
+    }
+    }
+    this->updateHeight();
+    this->checkAndFix();
+
+
+}
+
+
+
+
+
+
+template <class X, class Y>
+AvlTree<X,Y>* AvlTree<X,Y>::getBiggest()const
+{
+    return this->biggest;
+}
 /*
 find the vertex with the same key that was given and return its address
 if not fount in the tree returns nullptr
@@ -500,6 +669,7 @@ void AvlTree<X,Y>::checkAndFix()
 
 
     }
+   
 
 }
 
@@ -520,72 +690,4 @@ void AvlTree<X,Y>::print(int space) const{
 
 }
 
-/*
-this function gets a key and data to add THEM into the tree.
-if the key is already in the tree this will replace it with the new data by removing the old one and inserting the new one
-*/
-template<class X,class Y>
-void AvlTree<X,Y>::insert(const X& key,const Y& data)
-{
-    if(this->findV(key)!=nullptr)
-    {
-        if(this->info!=nullptr)
-        {
-            this->Delete(key);
-        }
-    }
-    
-    if(this->info==nullptr)//empty tree
-    {
-       Info<X,Y>* new_info_ptr= new Info<X,Y>;
-       new_info_ptr->changeData(data);
-       new_info_ptr->changeKey(key);
-        this->info=new_info_ptr;
-        return;
-    }
-    else//added to tree
-    {
-    
-    if(key<=info->getKey())//need to go left
-    {
-        if(this->left_tree==nullptr)//there is no left tree
-        {
-            
-            AvlTree<X,Y>* new_tree_ptr =new AvlTree<X,Y>;
-            new_tree_ptr->info=new Info<X,Y>;
-            new_tree_ptr->info->changeData(data);
-            new_tree_ptr->info->changeKey(key);
-            new_tree_ptr->father=this;
-            this->left_tree=new_tree_ptr;
-        }
-        else
-        {
-            
-            this->left_tree->insert(key,data);
-        } 
-    }
-    else//need to be put in the right side
-    {
-        if(this->right_tree==nullptr)//ther is no right tree
-        {
-            
-            AvlTree<X,Y>* new_tree_ptr =new AvlTree<X,Y>;
-            new_tree_ptr->info= new Info<X,Y>;
-            new_tree_ptr->info->changeData(data);
-            new_tree_ptr->info->changeKey(key);
-            new_tree_ptr->father=this;
-            this->right_tree=new_tree_ptr;
-        }
-        else
-        {
-            
-            this->right_tree->insert(key,data);
-        }
-        
-    }
-    }
-    this->updateHeight();
-    this->checkAndFix();
-
-}
 #endif
