@@ -21,13 +21,10 @@ public:
      CoursesManager();
     ~CoursesManager();
     void addCourse(int course_id, int num_of_classes);
-
-   
-  
     void removeCoure(int course_id);
-     //to_impliment
     void addWatch(int course_id, int class_id, int time_to_add);
     int getTimeViewed(int course_id,int class_id);
+    //to implement
     void getMostWatched(int wanted, int* courses,int* classes);
 
 };
@@ -71,25 +68,53 @@ void CoursesManager::addCourse(int course_id,int num_of_classes)
 make sure it exists*/
 void CoursesManager::removeCoure(int course_id)
 {
-    DoubleArray* need_to_remove_course=courses_tree->get(course_id);
-    int num_of_classes=need_to_remove_course->getSize();
-    int num_of_unwatecd_classes=need_to_remove_course->getListSize();
-    for(int i=0;i<num_of_classes;i++)
+    DoubleArray* need_to_remove_course=courses_tree->get(course_id);//log(N=num of courses)
+    int num_of_classes=need_to_remove_course->getSize();//o(1)
+    int num_of_unwatecd_classes=need_to_remove_course->getListSize();//o(1)
+    for(int i=0;i<num_of_classes;i++)//o(num of classes in removed course)
     {
         if(need_to_remove_course->getFirstArray(i)!=0)//this class was watched
         {
-            viewed_classes_tree->Delete(ClassTuple(course_id,i,need_to_remove_course->getFirstArray(i)));
+            viewed_classes_tree->Delete(ClassTuple(course_id,i,need_to_remove_course->getFirstArray(i)));//o(log(total classes in struct))
         }
         
     }
     num_unwatched_classes-=num_of_unwatecd_classes;
-    unwatched_classes->Delete(course_id);
-    courses_tree->Delete(course_id);
+    unwatched_classes->Delete(course_id);//o(log(N))
+    courses_tree->Delete(course_id);//o(log(N))
     total_num_of_classes-=num_of_classes;
     num_of_courses--;
-
-
 }
+/*this will add the watch time to the class of the course you ask for
+givev it course that exists and classs that exists*/
+void CoursesManager::addWatch(int course_id, int class_id, int time_to_add)
+{
+    DoubleArray* course=courses_tree->get(course_id);//log(N)
+    int class_watched_time=course->getFirstArray(class_id);//O(1)
+    if(class_watched_time!=0)//this classs was watched before
+    {
+        viewed_classes_tree->Delete(ClassTuple(course_id,class_id,class_watched_time));//o(log(total classes in struct))
+    }
+    else//unwatched
+    {
+
+        if(course->getListStart()->getData().getClassID()==class_id)//the class is in the begining og the list
+        {
+            unwatched_classes->insert(course_id,course->getListStart()->right);
+        }
+        num_unwatched_classes--;
+    }
+    course->addTimeWatch(class_id,time_to_add);
+    ClassTuple* new_class_data=new ClassTuple(course_id,class_id,course->getFirstArray(class_id));
+    viewed_classes_tree->insert(*new_class_data,new_class_data);
+}
+
+/*make sure to give this function a valid course id and class id*/   
+int CoursesManager::getTimeViewed(int course_id,int class_id)
+{
+    return courses_tree->get(course_id)->getFirstArray(class_id);
+}
+
 
 
 #endif
