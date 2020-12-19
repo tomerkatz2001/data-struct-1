@@ -19,7 +19,7 @@ private:
 public:
      CoursesManager();
     ~CoursesManager();
-    void addCoure(int course_id, int num_of_classes);
+    void addCourse(int course_id, int num_of_classes);
 
     //to_impliment
     void removeCoure(int course_id);
@@ -50,8 +50,11 @@ CoursesManager::~CoursesManager()
     delete courses_tree;
 }
 
-void CoursesManager::addCoure(int course_id,int num_of_classes)
+/*add a new course to the struct
+don't give a course that is in the tree */
+void CoursesManager::addCourse(int course_id,int num_of_classes)
 {
+    
     DoubleArray* array=new DoubleArray (course_id,num_of_classes);
     courses_tree->insert(course_id,array);
     unwatched_classes->insert(course_id,array->getListStart());
