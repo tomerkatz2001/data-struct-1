@@ -9,11 +9,11 @@
 class CoursesManager
 {
 private:
-    AvlTree<int,DoubleArray*>* courses_tree;// tre of int as key (coures id), and double array as data (array of int (watchtime) and Node* to list of unwatched classes)
-    AvlTree<ClassTuple,ClassTuple*>* viewed_classes_tree;
     int num_of_courses;
     int total_num_of_classes;
     int num_unwatched_classes;
+    AvlTree<int,DoubleArray*>* courses_tree;// tre of int as key (coures id), and double array as data (array of int (watchtime) and Node* to list of unwatched classes)
+    AvlTree<ClassTuple,ClassTuple*>* viewed_classes_tree;
     AvlTree<int,Node<ClassTuple>*>* unwatched_classes;
     
     
@@ -24,20 +24,18 @@ public:
     void removeCoure(int course_id);
     void addWatch(int course_id, int class_id, int time_to_add);
     int getTimeViewed(int course_id,int class_id);
-    //to implement
     void getMostWatched(int wanted, int* courses,int* classes);
 
 };
 
 CoursesManager::CoursesManager(/* args */)
 {
-    courses_tree=new AvlTree<int,DoubleArray*>;
-    viewed_classes_tree =new AvlTree<ClassTuple,ClassTuple*>;
     num_of_courses=0;
     total_num_of_classes=0;
     num_unwatched_classes=0;
+    courses_tree=new AvlTree<int,DoubleArray*>;
     unwatched_classes=new AvlTree<int,Node<ClassTuple>*>;
-   
+    viewed_classes_tree =new AvlTree<ClassTuple,ClassTuple*>;
 
 }
 
@@ -115,6 +113,24 @@ int CoursesManager::getTimeViewed(int course_id,int class_id)
     return courses_tree->get(course_id)->getFirstArray(class_id);
 }
 
+void CoursesManager::getMostWatched(int wanted, int* courses,int* classes)
+{
+    int viewed=total_num_of_classes-num_unwatched_classes;
+    if(viewed>0)
+    {
+        ClassTuple** classes_arr=new ClassTuple*[viewed];//o(viewed_classes)
+        viewed_classes_tree->getBig(classes_arr,viewed);//o(viewed_classes)
+        for(int i=0;i<viewed;i++)
+        {
+            courses[i]=classes_arr[i]->getCourseID();
+            classes[i]=classes_arr[i]->getClassID();
+            classes_arr[i]=nullptr;
+        }
+        delete []classes_arr;//o(viewed_classes)
+    }
+    int left=wanted-viewed;
+    unwatched_classes->inorderSmallList(unwatched_classes->getSmallest(),left,courses+viewed,classes+viewed);//o(left)
 
+}
 
 #endif

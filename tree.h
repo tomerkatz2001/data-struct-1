@@ -3,6 +3,9 @@
 #include "info.h"
 #include<exception>
 
+#include"node.h"
+#include"classTuple.h"
+
 static int max(const int& a,const  int& b)
 {
     if(a>b)
@@ -23,11 +26,14 @@ class AvlTree
     AvlTree<X,Y>* right_tree;
     AvlTree<X,Y>* father;
     AvlTree<X,Y>* biggest;
+    AvlTree<X,Y>* smallest;
+    
     
     public:
     ~AvlTree()
     {
         biggest=nullptr;
+        smallest=nullptr;
         delete info;
         info=nullptr;
         delete left_tree;
@@ -36,16 +42,17 @@ class AvlTree
         right_tree=nullptr;
 
     }
-    AvlTree():info(nullptr),left_tree(nullptr),right_tree(nullptr),father(nullptr),biggest(this){}
+    AvlTree():info(nullptr),left_tree(nullptr),right_tree(nullptr),father(nullptr),biggest(this),smallest(this){}
     
     void print(int sapce)const; 
     void insert(const X& key,const Y& data);
     void Delete(const X& key);
     bool exist(const X& key)const;
     Y get(const X& key)const;
-    void get(Y* arr,int n)const;
+    void getBig(Y* arr,int n)const;
+    void getSmall(Y* arr,int n)const;
     AvlTree<X,Y>* getBiggest()const;
-
+    AvlTree<X,Y>* getSmallest()const;
 
     void insert_help(const X& key,const Y& data);
     int getHeight() const ;
@@ -61,8 +68,16 @@ class AvlTree
     const Info<X,Y>* find(const X& key) const;
     AvlTree<X,Y>* findV(const X& key);
     void remove(AvlTree<X,Y>* tree_to_remove);
-    void get_help(Y* arr,int n,const AvlTree<X,Y>* biggest)const;
-    int inorder(const AvlTree<X,Y>*tree,Y* arr, int n,int how_much)const;
+    void getBigAux(Y* arr,int n,const AvlTree<X,Y>* biggest)const;
+    void getSmallAux(Y* arr, int n,AvlTree<X,Y>* smallest)const;
+    int inorderBig(const AvlTree<X,Y>*tree,Y* arr, int n,int how_much)const;
+    int inorderSmall(const AvlTree<X,Y>*tree,Y* arr, int n,int how_much)const;
+    
+    int inorderSmallListAux(const AvlTree<int,Node<ClassTuple>*>*tree,int wanteted_classes,int* courses,int*  classes)const;
+    void inorderSmallList(const AvlTree<int,Node<ClassTuple>*>*smallest,int wanteted_classes,int* courses,int*  classes)const;
+
+
+
     
     
     
@@ -85,6 +100,11 @@ time complax:log(N)
 template <class X,class Y>
 Y AvlTree<X,Y>::get(const X& key)const
 {
+    if(this->exist(key)==false)
+    {
+        throw std::exception();
+    }
+    
     assert(this->exist(key));
     return this->find(key)->getData();
 }
@@ -101,48 +121,108 @@ void AvlTree<X,Y>::Delete(const X& key)
   
     this->remove(this->findV(key));
     AvlTree<X,Y>* scan=this;
-    while(scan->right_tree!=nullptr)
+    while(scan->right_tree!=nullptr)//log(N)
     {
         scan=scan->right_tree;
     }
     this->biggest=scan;
+    scan=this;
+    while(scan->left_tree!=nullptr)//o(logN)
+    {
+        scan=scan->left_tree;
+    }
+    this->smallest=scan;
 }
 
 /*this function will do an inorder tour in the tree, from the big to the small, and put the data in the given array
 give this function how many vertex you want to get
 time complax: o(n+log(N)) when n is the givven n and N is size of the tree
-but if you givr this function the biggedt leaf not log(N) is needed
+but if you give this function the biggedt leaf not log(N) is needed so o(n)
 it return the amount of item it got from the tree (it could be at max n)*/
 template <class X, class Y>
-int AvlTree<X,Y>::inorder(const AvlTree<X,Y>*tree, Y* arr, int n,int how_much)const
+int AvlTree<X,Y>::inorderBig(const AvlTree<X,Y>*tree, Y* arr, int n,int how_much)const
 { 
-    if(how_much>=n||tree==nullptr)
+    
+    if(how_much>=n||tree==nullptr||tree->info==nullptr)
     {
         return how_much;
     }
-    how_much=this->right_tree->inorder(tree->right_tree,arr,n,how_much);
+    
+        how_much=this->inorderBig(tree->right_tree,arr,n,how_much);
+    
     if(how_much<n)
     {
         arr[how_much]=(tree->info->getData());
         how_much++;
-    
-        how_much=(this-> left_tree->inorder(tree->left_tree,arr,n,how_much));
+        
+        how_much=(this->inorderBig(tree->left_tree,arr,n,how_much));
     }
     return how_much;   
    
 }
 
+/*this function will do an inorder tour in the tree, from the small to the big, and put the data in the given array
+give this function how many vertex you want to get
+time complax: o(n+log(N)) when n is the givven n and N is size of the tree
+but if you give this function the biggedt leaf not log(N) is needed so only o(n)
+it return the amount of item it got from the tree (it could be at max n)*/
+template<class X,class Y>
+int AvlTree<X,Y>::inorderSmall(const AvlTree<X,Y>*tree,Y* arr, int n,int how_much)const
+{
+    if(how_much>=n||tree==nullptr||tree->info==nullptr)
+    {
+        return how_much;
+    }
+    how_much=this->inorderSmall(tree->left_tree,arr,n,how_much);
+    if(how_much<n)
+    {
+        arr[how_much]=tree->info->getData();
+        how_much++;
+        how_much=this->inorderSmall(tree->right_tree,arr,n,how_much);
+    }
+    return how_much;
+}
+
+template<class X,class Y>
+int AvlTree<X,Y>::inorderSmallListAux(const AvlTree<int,Node<ClassTuple>*>*tree,int wanteted_classes,int* courses,int*classes)const
+{
+    int classes_left;
+    if(wanteted_classes<=0||tree==nullptr||tree->info==nullptr)
+    {
+        return wanteted_classes;
+    }
+    classes_left=this->inorderSmallListAux(tree->left_tree,wanteted_classes,courses,classes);
+    if(classes_left>0)
+    {
+        Node<ClassTuple>* list=tree->info->getData();
+        while(list!=nullptr&&classes_left>0)
+        {
+            classes[wanteted_classes-classes_left]=list->getData().getClassID();
+            courses[wanteted_classes-classes_left]=list->getData().getCourseID();
+            classes_left--;
+            list=list->right;
+        }
+        int was_inserted=wanteted_classes-classes_left;
+        classes_left=this->inorderSmallListAux(tree->right_tree,classes_left,courses+was_inserted,classes+was_inserted);
+
+    }
+    return classes_left;
+
+}
+
+
+
 template <class X, class Y>
-void AvlTree<X,Y>::get_help(Y* arr,int n,const AvlTree<X,Y>* biggest)const
+void AvlTree<X,Y>::getBigAux(Y* arr,int n,const AvlTree<X,Y>* biggest)const
 {
     int inserted=0;
-    inserted=this->inorder(biggest,arr,n,0);//
+    inserted=this->inorderBig(biggest,arr,n,0);//
     n=n-inserted;
     const AvlTree<X,Y>* temp_tree=biggest;
     while(n>0)
     {
         int x=0;
-        if(temp_tree->father==nullptr)
+        if(temp_tree->father==nullptr)//no more vertex
         {
            throw std::exception();
             break;
@@ -151,21 +231,89 @@ void AvlTree<X,Y>::get_help(Y* arr,int n,const AvlTree<X,Y>* biggest)const
         arr[inserted]=temp_tree->info->getData();
         inserted++;
         n--;
-        x=temp_tree->inorder(temp_tree->left_tree,(arr+inserted),n,0);
+        x=temp_tree->inorderBig(temp_tree->left_tree,(arr+inserted),n,0);
         inserted=inserted+x;
         n=n-x;
     }
         
 }
 
+template<class X,class Y>
+void AvlTree<X,Y>::getSmallAux(Y* arr, int n,AvlTree<X,Y>* smallest)const
+{
+    int inserted=0;
+    inserted=this->inorderSmall(smallest,arr,n,0);
+    n=n-inserted;
+    const AvlTree<X,Y>* temp_tree=smallest;
+    while(n>0)
+    {
+        int x=0;
+        if(temp_tree->father==nullptr)
+        { 
+            throw std::exception();
+            break;
+        }
+        temp_tree=temp_tree->father;
+        arr[inserted]=temp_tree->info->getData();
+        inserted++;
+        n--;
+        x=temp_tree->inorderSmall(temp_tree->right_tree,(arr+inserted),n,0);
+        inserted=inserted+x;
+        n=n-x;
+    }
+}
+
+/*fill the rest of the  given array with the unviewed classes in the right order
+give it the smallest vertex it the unviewed tree so it could run in o("wanted_classes") time complax
+if given the root time complax o("wanted_class"+log(number of unviewed classes)) */
+template<class X,class Y>
+void AvlTree<X,Y>::inorderSmallList(const AvlTree<int,Node<ClassTuple>*>*smallest ,int wanteted_classes,int* courses,int*  classes)const
+{
+    int left=wanteted_classes;
+    left=this->inorderSmallListAux(smallest,wanteted_classes,courses,classes);
+    const AvlTree<int,Node<ClassTuple>*>*temp_tree= smallest;
+    while(left>0)
+    {
+        if(temp_tree->father==nullptr)
+        { 
+            throw std::exception();
+        }
+        Node<ClassTuple>* list=temp_tree->info->getData();
+        while(list!=nullptr&&left>0)
+        {   
+            classes[wanteted_classes-left]=list->getData().getClassID();
+            courses[wanteted_classes-left]=list->getData().getCourseID();
+            left--;
+            list=list->right;
+        }
+        int was_inserted=wanteted_classes-left;
+        left=this->inorderSmallListAux(temp_tree->right_tree,left,courses+was_inserted,classes+was_inserted);
+
+    }
+
+
+}
+
+
+
+
 /*
 this function will give you the n biggest element in the tree by order in the arr you give it (a[0]-the biggest)
 give it an arr with enough space and if asked more then what were in the tree thrw exception
  */
 template <class X, class Y>
-void AvlTree<X,Y>::get(Y* arr,int n)const
+void AvlTree<X,Y>::getBig(Y* arr,int n)const
 {
-    get_help(arr,n,(this->biggest));
+    getBigAux(arr,n,(this->biggest));
+}
+/*
+this function will give you the n small element in the tree by order in the arr you give it (a[0]-the smallest)
+give it an arr with enough space and if asked more then what were in the tree thrw exception
+ */
+template<class X,class Y>
+void AvlTree<X,Y>::getSmall(Y* arr,int n)const
+{
+    getSmallAux(arr,n,this->smallest);
 }
 
 
@@ -185,6 +333,12 @@ void AvlTree<X,Y>::insert(const X& key,const Y& data)
         scan=scan->right_tree;
     }
     this->biggest=scan;
+    scan=this;
+    while(scan->left_tree!=nullptr)
+    {
+        scan=scan->left_tree;
+    }
+    this->smallest=scan;
 }
 
 template<class X,class Y>
@@ -205,6 +359,7 @@ void AvlTree<X,Y>::insert_help(const X& key,const Y& data)
        new_info_ptr->changeKey(key);
         this->info=new_info_ptr;
         this->biggest=this;
+        this->smallest=this;
         return;
     }
     else//added to tree
@@ -258,12 +413,19 @@ void AvlTree<X,Y>::insert_help(const X& key,const Y& data)
 
 
 
-
+/*returns a pointer to the biggest vertex in the tree*/
 template <class X, class Y>
 AvlTree<X,Y>* AvlTree<X,Y>::getBiggest()const
 {
     return this->biggest;
 }
+/*returns a pointer to the smallest vertex in the tree*/
+template<class X, class Y>
+AvlTree<X,Y>* AvlTree<X,Y>::getSmallest()const
+{
+    return this->smallest;
+}
+
 /*
 find the vertex with the same key that was given and return its address
 if not fount in the tree returns nullptr
