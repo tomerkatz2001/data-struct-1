@@ -1,7 +1,7 @@
 #ifndef TREE_H
-#define TREE_h
+#define TREE_H
 #include "info.h"
-
+#include<exception>
 
 static int max(const int& a,const  int& b)
 {
@@ -23,6 +23,7 @@ class AvlTree
     AvlTree<X,Y>* right_tree;
     AvlTree<X,Y>* father;
     AvlTree<X,Y>* biggest;
+    
     public:
     ~AvlTree()
     {
@@ -36,7 +37,7 @@ class AvlTree
 
     }
     AvlTree():info(nullptr),left_tree(nullptr),right_tree(nullptr),father(nullptr),biggest(this){}
-
+    
     void print(int sapce)const; 
     void insert(const X& key,const Y& data);
     void Delete(const X& key);
@@ -200,7 +201,7 @@ void AvlTree<X,Y>::insert_help(const X& key,const Y& data)
     if(this->info==nullptr)//empty tree
     {
        Info<X,Y>* new_info_ptr= new Info<X,Y>;
-       new_info_ptr->changeData(data);
+        new_info_ptr->changeData(data);
        new_info_ptr->changeKey(key);
         this->info=new_info_ptr;
         this->biggest=this;
@@ -217,7 +218,7 @@ void AvlTree<X,Y>::insert_help(const X& key,const Y& data)
             AvlTree<X,Y>* new_tree_ptr =new AvlTree<X,Y>;
             new_tree_ptr->info=new Info<X,Y>;
             new_tree_ptr->info->changeData(data);
-            new_tree_ptr->info->changeKey(key);
+             new_tree_ptr->info->changeKey(key);
             new_tree_ptr->father=this;
             this->left_tree=new_tree_ptr;
         }

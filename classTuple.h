@@ -4,11 +4,12 @@
 class ClassTuple
 {
     private:
-    const int course_id;
-    const int class_id;
+     int course_id;
+     int class_id;
     int watch_time;
     public:
-    ClassTuple(const int course_id,const int class_id, const int watch_time=0):course_id(course_id),class_id(class_id),watch_time(watch_time){};
+    ClassTuple(const int course_id,const int class_id,const int watch_time=0):course_id(course_id),class_id(class_id),watch_time(watch_time){}
+    ClassTuple():course_id(-1),class_id(-1),watch_time(-1){}
     int getCourseID()const;
     int getClassID()const;
     int getWatchTime()const;
@@ -16,6 +17,9 @@ class ClassTuple
     bool operator > (const ClassTuple& tuple2)const;
     bool operator == (const ClassTuple& tuple2)const;
     bool operator < (const ClassTuple& tuple2)const;
+    bool operator >= (const ClassTuple& tuple2)const;
+    bool operator <= (const ClassTuple& tuple2)const;
+    ClassTuple& operator=(const ClassTuple& )=default;
 
 };
 
@@ -78,6 +82,19 @@ bool ClassTuple::operator >(const ClassTuple& tuple2)const
 
 }
 
+bool ClassTuple::operator >=(const ClassTuple& tuple2)const
+{
+    if(*this==tuple2)
+    {
+        return true;
+    }
+    else
+    {
+        return *this>tuple2;
+    }
+    
+}
+
 bool ClassTuple::operator < (const ClassTuple& tuple2)const
 {
     if((*this)==tuple2)
@@ -87,6 +104,19 @@ bool ClassTuple::operator < (const ClassTuple& tuple2)const
     return (!(*this>tuple2));
 }
 
+
+bool ClassTuple::operator <= (const ClassTuple& tuple2)const
+{
+    if(*this==tuple2)
+    {
+        return true;
+    }
+    else
+    {
+        return *this<tuple2;
+    }
+    
+}
 bool ClassTuple::operator == (const ClassTuple& tuple2)const
 {
     return this->getClassID()==tuple2.getClassID()&&this->getCourseID()==tuple2.getCourseID()&&this->getWatchTime()==tuple2.getWatchTime();

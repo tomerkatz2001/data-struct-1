@@ -4,6 +4,8 @@
 #include<memory>
 #include<iostream>
 #include<assert.h>
+#include"node.h"
+#include"classTuple.h"
 
 template <class T ,class Z>
 class Info
@@ -13,10 +15,19 @@ class Info
     Z data;
     int height;
     
+    
+    
     public:
-    Info(Z key , T data):key(key),data(data),height(0){}
+    ~Info()
+        {   if(!std::is_same<Z,Node<ClassTuple>*>::value)
+            {
+                delete data;
+            }
+        }
+    Info(Z key , T data,bool key_is_pointer):key(key),data(data),height(0){}
     Info():height(0){}//empty Info 
     Z getData()const;
+    
     void changeData(const Z new_data);
     int getHeight()const;
     void changeHeight(int new_h);
@@ -36,7 +47,10 @@ Z Info<T,Z>::getData() const
 template <class T,class Z>
 T Info<T,Z>::getKey()const
 {
-    return this->key;
+   
+        return this->key;
+    
+    
 }
 
 template<class T,class Z>
@@ -62,6 +76,13 @@ void Info<T,Z>::changeKey(const T new_key)
 {
     this->key=new_key;
 }
+
+
+
+
+    
+
+
 
 
 #endif
