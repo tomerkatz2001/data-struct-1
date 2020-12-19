@@ -30,42 +30,52 @@ void changeEndList(Node<ClassTuple>* new_end);
 int getSize()const;
 
 };
-
+/*time complax o(num of classes)*/
 DoubleArray::DoubleArray(const int course_id,const int num_of_classes):unwatched_classes(num_of_classes),start_list(nullptr),end_list(nullptr)
 {
     this->size=num_of_classes;
-    first_array=new int[num_of_classes]();
-    second_array=new Node<ClassTuple>*[num_of_classes];
-    for(int i=0;i<num_of_classes;i++)
+    if(num_of_classes==0)
     {
-        ClassTuple new_class (course_id,i,0);
-        second_array[i]=new Node<ClassTuple>(new_class);
-        if(i==0)
-        {
-            second_array[i]->left=nullptr;
-        }
-        else
-        {
-            second_array[i]->left=(second_array[i-1]);
-        }
-        
+        first_array=nullptr;
+        second_array=nullptr;    
     }
-    for(int i=0;i<num_of_classes;i++)
+    if(num_of_classes>0){
+        first_array=new int[num_of_classes]();
+        second_array=new Node<ClassTuple>*[num_of_classes];
+        for(int i=0;i<num_of_classes;i++)
+        {
+            ClassTuple new_class (course_id,i,0);
+            second_array[i]=new Node<ClassTuple>(new_class);
+            if(i==0)
+            {
+                second_array[i]->left=nullptr;
+            }
+            else
+            {
+                second_array[i]->left=(second_array[i-1]);
+            }
+            
+        }
+        for(int i=0;i<num_of_classes;i++)
+        {
+            if(i==num_of_classes-1)
+            {
+                second_array[i]->right=(nullptr);
+            }
+            else
+            {
+                second_array[i]->right=(second_array[i+1]);
+            }
+            
+        }
+        start_list=second_array[0];
+        end_list=second_array[num_of_classes-1];
+    }
+    else if(num_of_classes<0)
     {
-        if(i==num_of_classes-1)
-        {
-            second_array[i]->right=(nullptr);
-        }
-        else
-        {
-            second_array[i]->right=(second_array[i+1]);
-        }
-        
+        throw std::exception();
     }
-    start_list=second_array[0];
-    end_list=second_array[num_of_classes-1];
-
-
+    
 }
 
 DoubleArray::~DoubleArray()

@@ -25,7 +25,9 @@ public:
     void addWatch(int course_id, int class_id, int time_to_add);
     int getTimeViewed(int course_id,int class_id);
     void getMostWatched(int wanted, int* courses,int* classes);
-
+    bool courseExsit(int course_id);
+    bool classExisitInCourse(int course_id,int class_id);
+    int getTotalClasses();
 };
 
 CoursesManager::CoursesManager(/* args */)
@@ -52,7 +54,6 @@ CoursesManager::~CoursesManager()
 don't give a course that is in the tree */
 void CoursesManager::addCourse(int course_id,int num_of_classes)
 {
-    
     
     DoubleArray* array=new DoubleArray (course_id,num_of_classes);
     courses_tree->insert(course_id,array);
@@ -84,7 +85,7 @@ void CoursesManager::removeCoure(int course_id)
     num_of_courses--;
 }
 /*this will add the watch time to the class of the course you ask for
-givev it course that exists and classs that exists*/
+give it course that exists and classs that exists*/
 void CoursesManager::addWatch(int course_id, int class_id, int time_to_add)
 {
     DoubleArray* course=courses_tree->get(course_id);//log(N)
@@ -95,10 +96,22 @@ void CoursesManager::addWatch(int course_id, int class_id, int time_to_add)
     }
     else//unwatched
     {
-
+        if((course->getListStart())==nullptr)
+        {
+            throw std::exception();
+        }
         if(course->getListStart()->getData().getClassID()==class_id)//the class is in the begining og the list
         {
-            unwatched_classes->insert(course_id,course->getListStart()->right);
+            if(course->getListStart()->right==nullptr)//this is the last unviewed class in this course
+            {
+                unwatched_classes->Delete(course_id);
+            }
+            else
+            {
+                unwatched_classes->insert(course_id,course->getListStart()->right);//o(log(N))
+            }
+            
+            
         }
         num_unwatched_classes--;
     }
@@ -115,6 +128,10 @@ int CoursesManager::getTimeViewed(int course_id,int class_id)
 
 void CoursesManager::getMostWatched(int wanted, int* courses,int* classes)
 {
+    if(wanted>total_num_of_classes)
+    {
+        throw std::exception(); //input error
+    }
     int viewed=total_num_of_classes-num_unwatched_classes;
     if(viewed>0)
     {
@@ -130,7 +147,31 @@ void CoursesManager::getMostWatched(int wanted, int* courses,int* classes)
     }
     int left=wanted-viewed;
     unwatched_classes->inorderSmallList(unwatched_classes->getSmallest(),left,courses+viewed,classes+viewed);//o(left)
-
 }
+/*r
+returuns if a courst is in the strcut alraedy
+time complax o(N) 
+*/
+ bool CoursesManager::courseExsit(int course_id)
+ {
+     return courses_tree->exist(course_id);
+ }
+ /*returns if a class of the course is in the struct alraedy
+ time complax O(N)*/
+ bool CoursesManager::classExisitInCourse(int course_id,int class_id)
+ {
+     if(this->courseExsit(course_id))
+     {
+         if(courses_tree->get(course_id)->getSize()>class_id)
+         {
+             return true;
+         }
+     }
+     return false;
+ }
+ int CoursesManager::getTotalClasses()
+ {
+     return total_num_of_classes;
+ }
 
 #endif

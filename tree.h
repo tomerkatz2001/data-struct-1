@@ -278,6 +278,7 @@ void AvlTree<X,Y>::inorderSmallList(const AvlTree<int,Node<ClassTuple>*>*smalles
         { 
             throw std::exception();
         }
+        temp_tree=temp_tree->father;
         Node<ClassTuple>* list=temp_tree->info->getData();
         while(list!=nullptr&&left>0)
         {   
