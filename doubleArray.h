@@ -27,6 +27,7 @@ Node<ClassTuple>* getListStart()const;
 Node<ClassTuple>* getListEnd()const;
 void changeStartList(Node<ClassTuple>* new_start);
 void changeEndList(Node<ClassTuple>* new_end);
+int getSize()const;
 
 };
 
@@ -70,14 +71,14 @@ DoubleArray::DoubleArray(const int course_id,const int num_of_classes):unwatched
 DoubleArray::~DoubleArray()
 {
     delete[]first_array;
-    std::cout<<"clear first array"<<std::endl;
+    
     for(int i=0;i<this->size;i++)
     {
         delete second_array[i];
         second_array[i]=nullptr;
     }
     delete[] second_array;
-    std::cout<<"clear second array"<<std::endl;
+    
 }
 
 int DoubleArray::getFirstArray(const int index)const
@@ -131,6 +132,7 @@ void DoubleArray::addTimeWatch(int class_index,int time_to_add)
     second_array[index]=item;
 }*/
 
+/*this function return the number of unwated classes in this course*/
 int DoubleArray::getListSize()const
 {
     return unwatched_classes;
@@ -157,7 +159,10 @@ void DoubleArray::changeEndList(Node<ClassTuple>* new_end)
     this->end_list=new_end;
 }
 
-
+int DoubleArray::getSize() const
+{
+    return size;
+}
 
 
 
