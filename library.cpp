@@ -96,13 +96,17 @@ StatusType WatchClass(void *DS, int courseID, int classID, int time)
 }
 
 StatusType TimeViewed(void *DS, int courseID, int classID, int *timeViewed){
-    if(DS==nullptr||courseID<=0||classID<0||((CoursesManager*)DS)->numOfClasses(courseID)<classID+1)
+    if(DS==nullptr||courseID<=0||classID<0)
     {
         return INVALID_INPUT;
     }
     if(!((CoursesManager*)DS)->courseExsit(courseID))//O(log(N). N- number of courses(<<num of classes)
     {
         return FAILURE;
+    }
+    if(((CoursesManager*)DS)->numOfClasses(courseID)<classID+1)
+    {
+        return INVALID_INPUT;
     }
     try
     {
