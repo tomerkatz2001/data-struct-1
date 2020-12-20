@@ -1,7 +1,7 @@
 #include"library.h"
 #include"CoursesManager.h"
-
-
+#include <stdio.h>
+#include <iostream>
 void *Init(){
     return new CoursesManager();
 }
@@ -96,7 +96,7 @@ StatusType WatchClass(void *DS, int courseID, int classID, int time)
 }
 
 StatusType TimeViewed(void *DS, int courseID, int classID, int *timeViewed){
-    if(DS==nullptr||courseID<=0||classID<0||((CoursesManager*)DS)->numOfClasses(courseID)>classID+1)
+    if(DS==nullptr||courseID<=0||classID<0||((CoursesManager*)DS)->numOfClasses(courseID)<classID+1)
     {
         return INVALID_INPUT;
     }
@@ -146,5 +146,5 @@ StatusType GetMostViewedClasses(void *DS, int numOfClasses, int *courses, int *c
 }
 
 void Quit(void** DS){
-    delete DS;
+    delete (CoursesManager*)*DS;
 };
