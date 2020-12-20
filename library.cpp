@@ -2,7 +2,9 @@
 #include"CoursesManager.h"
 
 
-void *Init(){}
+void *Init(){
+    return new CoursesManager();
+}
 
 StatusType AddCourse (void *DS, int courseID, int numOfClasses)
 {
@@ -34,11 +36,30 @@ StatusType AddCourse (void *DS, int courseID, int numOfClasses)
     
 }
 
-StatusType RemoveCourse(void *DS, int courseID){}
+StatusType RemoveCourse(void *DS, int courseID){
+    if(DS==nullptr||courseID<=0)
+    {
+        return INVALID_INPUT;
+    }
+    if(!((CoursesManager*)DS)->courseExsit(courseID))//O(log(N). N- number of courses(<<num of classes)
+    {
+        return FAILURE;
+    }
+    try
+    {
+        ((CoursesManager*)DS)->removeCourse(courseID);
+    }
+    catch(const std::bad_alloc& e)
+    {
+            return ALLOCATION_ERROR;
+    }
+    return SUCCESS;
+    
+}
 
 StatusType WatchClass(void *DS, int courseID, int classID, int time)
 {
-    if(time<=0||DS==nullptr||classID<0||classID<=0)
+    if(time<=0||DS==nullptr||courseID<0||classID<=0)
     {
         return INVALID_INPUT;
     }
@@ -74,7 +95,26 @@ StatusType WatchClass(void *DS, int courseID, int classID, int time)
     
 }
 
-StatusType TimeViewed(void *DS, int courseID, int classID, int *timeViewed){}
+StatusType TimeViewed(void *DS, int courseID, int classID, int *timeViewed){
+    if(DS==nullptr||courseID<=0||classID<0||((CoursesManager*)DS)->numOfClasses(courseID)>classID+1)
+    {
+        return INVALID_INPUT;
+    }
+    if(!((CoursesManager*)DS)->courseExsit(courseID))//O(log(N). N- number of courses(<<num of classes)
+    {
+        return FAILURE;
+    }
+    try
+    {
+        *timeViewed=(((CoursesManager*)DS)->getTimeViewed(courseID,classID));
+    }
+    catch(const std::bad_alloc& e)
+    {
+            return ALLOCATION_ERROR;
+    }
+    return SUCCESS;
+
+}
 
 StatusType GetMostViewedClasses(void *DS, int numOfClasses, int *courses, int *classes)
 {
@@ -105,4 +145,6 @@ StatusType GetMostViewedClasses(void *DS, int numOfClasses, int *courses, int *c
     return SUCCESS;
 }
 
-void Quit(void** DS);
+void Quit(void** DS){
+    delete DS;
+};

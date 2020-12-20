@@ -12,7 +12,7 @@ private:
     int num_of_courses;
     int total_num_of_classes;
     int num_unwatched_classes;
-    AvlTree<int,DoubleArray*>* courses_tree;// tre of int as key (coures id), and double array as data (array of int (watchtime) and Node* to list of unwatched classes)
+    AvlTree<int,DoubleArray*>* courses_tree;// tree of int as key (coures id), and double array as data (array of int (watchtime) and Node* to list of unwatched classes)
     AvlTree<ClassTuple,ClassTuple*>* viewed_classes_tree;
     AvlTree<int,Node<ClassTuple>*>* unwatched_classes;
     
@@ -21,13 +21,15 @@ public:
      CoursesManager();
     ~CoursesManager();
     void addCourse(int course_id, int num_of_classes);
-    void removeCoure(int course_id);
+    void removeCourse(int course_id);
     void addWatch(int course_id, int class_id, int time_to_add);
     int getTimeViewed(int course_id,int class_id);
     void getMostWatched(int wanted, int* courses,int* classes);
     bool courseExsit(int course_id);
     bool classExisitInCourse(int course_id,int class_id);
     int getTotalClasses();
+    int numOfClasses(int course_id);
+
 };
 
 CoursesManager::CoursesManager(/* args */)
@@ -63,9 +65,16 @@ void CoursesManager::addCourse(int course_id,int num_of_classes)
     num_unwatched_classes+=num_of_classes;
 }
 
+int CoursesManager::numOfClasses(int course_id)
+{
+    DoubleArray* course=courses_tree->get(course_id);
+    int num_of_classes=course->getSize();
+    return num_of_classes;
+}
+
 /*remove the course from the data struct
 make sure it exists*/
-void CoursesManager::removeCoure(int course_id)
+void CoursesManager::removeCourse(int course_id)
 {
     DoubleArray* need_to_remove_course=courses_tree->get(course_id);//log(N=num of courses)
     int num_of_classes=need_to_remove_course->getSize();//o(1)
