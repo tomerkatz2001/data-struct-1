@@ -153,4 +153,4 @@ void Quit(void** DS){
     delete (CoursesManager*)*DS;
     *DS=nullptr;
 
-};
+}
