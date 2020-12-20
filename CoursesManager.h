@@ -47,7 +47,6 @@ CoursesManager::~CoursesManager()
 {
     
     delete viewed_classes_tree;
-    
     delete unwatched_classes;
     delete courses_tree;
 }
@@ -142,11 +141,16 @@ void CoursesManager::getMostWatched(int wanted, int* courses,int* classes)
         throw std::exception(); //input error
     }
     int viewed=total_num_of_classes-num_unwatched_classes;
+    int num=0;
+    if(viewed<wanted)
+        num=viewed;
+    else
+        num=wanted;
     if(viewed>0)
     {
-        ClassTuple** classes_arr=new ClassTuple*[viewed];//o(viewed_classes)
-        viewed_classes_tree->getBig(classes_arr,viewed);//o(viewed_classes)
-        for(int i=0;i<viewed;i++)
+        ClassTuple** classes_arr=new ClassTuple*[num];//o(viewed_classes)
+        viewed_classes_tree->getBig(classes_arr,num);//o(viewed_classes)
+        for(int i=0;i<num;i++)
         {
             courses[i]=classes_arr[i]->getCourseID();
             classes[i]=classes_arr[i]->getClassID();
@@ -154,8 +158,8 @@ void CoursesManager::getMostWatched(int wanted, int* courses,int* classes)
         }
         delete []classes_arr;//o(viewed_classes)
     }
-    int left=wanted-viewed;
-    unwatched_classes->inorderSmallList(unwatched_classes->getSmallest(),left,courses+viewed,classes+viewed);//o(left)
+    int left=wanted-num;
+    unwatched_classes->inorderSmallList(unwatched_classes->getSmallest(),left,courses+num,classes+num);//o(left)
 }
 /*r
 returuns if a courst is in the strcut alraedy
